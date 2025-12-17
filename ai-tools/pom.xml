@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.dustin.ai</groupId>
+        <artifactId>dustin</artifactId>
+        <version>1.0</version>
+    </parent>
+
+    <groupId>com.dustin.ai</groupId>
+    <artifactId>ai-tools</artifactId>
+    <version>${project.parent.version}</version>
+    
+    <packaging>jar</packaging>
+
+    <description>AI-TOOLS project for Solon</description>
+
+    <properties>
+        <java.version>1.8</java.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.dustin.ai</groupId>
+            <artifactId>ai-manage</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dustin.ai</groupId>
+            <artifactId>ai-support</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+
+        <plugins>
+            <plugin>
+                <groupId>org.noear</groupId>
+                <artifactId>solon-maven-plugin</artifactId>
+                <configuration>
+                    <!-- 指定启动主类 -->
+                    <mainClass>com.dustin.ai.tools.AiToolsApp</mainClass>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>com.ly.smart-doc</groupId>
+                <artifactId>smart-doc-maven-plugin</artifactId>
+                <version>3.0.8</version>
+                <configuration>
+                    <!--指定生成文档的使用的配置文件,配置文件放在自己的项目中-->
+                    <configFile>./src/main/resources/smart-doc.json</configFile>
+                    <!--指定项目名称-->
+                    <projectName>AI-TOOLS</projectName>
+                    <includes>
+                        <include>com.dustin.ai.tools.*</include>
+                    </includes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+
+    <!--    <repositories>		-->
+<!--        <repository>-->
+<!--			<id>tencent</id>-->
+<!--			<url>https://mirrors.cloud.tencent.com/nexus/repository/maven-public/</url>-->
+<!--			<snapshots>-->
+<!--				<enabled>false</enabled>-->
+<!--			</snapshots>-->
+<!--		</repository>-->
+<!--    </repositories>-->
+
+</project>

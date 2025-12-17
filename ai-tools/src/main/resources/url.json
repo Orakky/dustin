@@ -1,0 +1,14 @@
+[
+  {
+    "name": "findShipBlockAiData",
+    "desc": "获取大组定盘数据接口",
+    "type": "POST",
+    "url": "http://127.0.0.1:9055/ai/aiAnalytics/findShipBlockAiData"
+  },
+  {
+    "name": "translationData",
+    "desc": "回传大组定盘分段数据接口",
+    "type": "POST",
+    "url": "http://127.0.0.1:9055/ai/aiAnalytics/translationData"
+  }
+]

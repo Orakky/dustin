@@ -1,0 +1,15 @@
+{
+  "serverUrl": "http://localhost:8081",
+  "isStrict": false,
+  "allInOne": true,
+  "outPath": "src/main/resources/static/doc",
+  "coverOld": true,
+  "createDebugPage": true,
+  "packageFilters": "com.dustin.ai.tools.*",
+  "projectName": "AI工具模块",
+  "framework": "solon",
+  "requestExample": true,
+  "responseExample": true,
+  "style": "xt256",
+  "allInOneDocFileName": "index.html"
+}

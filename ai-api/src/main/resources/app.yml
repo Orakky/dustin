@@ -1,0 +1,106 @@
+server:
+  port: 8080
+  contextPath: "!ai"
+server.session:
+  timeout: 3600
+  cookie:
+    httpOnly: true
+    secure: false
+solon.app:
+  name: 'ai-api'
+  group: 'dustin'
+
+solon.logging:
+  appender:
+    console:
+      level: DEBUG
+    file:
+      level: INFO
+
+solon.ai.chat:
+  origins: "http://127.0.0.1:8888,http://localhost:8888"
+  ollama:
+    apiUrl: "http://127.0.0.1:11434/api/chat" # 使用完整地址（而不是 api_base）
+    provider: "ollama" # 使用 ollama 服务时，需要配置 provider
+    model: "qwen2.5:0.5b" # 或 deepseek-r1:7b  llama3.2
+  openai:
+    apiUrl: "https://127.0.0.1:1110/compatible-mode/v1/chat/completions"
+    apiKey: "sk-XXXX"
+    model: "qwen2.5-72b-instruct"
+  cosco:
+#    provider: "cosco"
+    apiUrl: "http://localhost:57879/qwen3-32b/chi/v1/chat/completions"
+    apiKey: "apiKey"
+    model: "Qwen3-32B"
+
+
+
+solon.ai.mcp:
+  client:
+    weather:
+      apiUrl: "http://localhost:8081/mcp/sse"
+    basic:
+      channel: "streamable"
+      apiUrl: "http://127.0.0.1:8081/tool/basicMcp"
+
+solon.ai.embed:
+  ollama:
+    apiUrl: "http://127.0.0.1:11434/api/embed" # 使用完整地址（而不是 api_base）
+    provider: "ollama" # 使用 ollama 服务时，需要配置 provider
+    model: "bge-m3:latest"
+  cosco:
+    apiUrl: "http://127.0.0.1:30069/embedding/chi/v1/embeddings"
+    apiKey: "a818c61b-21cf-4ee1-962b-55fe2c773db2"
+    model: "text-embedding-v2"
+
+
+solon.ai.repo:
+  milvus: # 向量数据库地址
+    status: false
+    url: http://127.0.0.1:19530 # 参数 ConnectConfig 的类结构配置
+
+
+
+# 配置数据源对应的 mybatis 信息（要与 DataSource bean 的名字对上）
+mybatis.dynamic:
+  typeAliases:    #支持包名 或 类名（大写开头 或 *）//支持 ** 或 * 占位符
+    - "com.dustin.ai.**.entity"
+  mappers:        #支持包名 或 类名（大写开头 或 *）或 xml（.xml结尾）//支持 ** 或 * 占位符
+    - "com.dustin.ai.**.mapper"
+    - "classpath:mapper/*.xml"
+  configuration:   #扩展配置（要与 MybatisConfiguration 类的属性一一对应）
+    cacheEnabled: false
+    mapperVerifyEnabled: true #如果为 true，则要求所有 mapper 有 @Mapper 主解
+    mapUnderscoreToCamelCase: true
+    logImpl: org.apache.ibatis.logging.stdout.StdOutImpl
+  globalConfig:    #全局配置（要与 GlobalConfig 类的属性一一对应）
+    banner: false
+
+
+# dynamic！ 为动态数据源（主菜是这里!!!）
+solon.dataSources:
+  dynamic!:
+    class: "org.noear.solon.data.dynamicds.DynamicDataSource"
+    strict: true #严格模式（指定的源不存时：严格模式会抛异常；非严格模式用默认源）
+    default: "db1" #指定默认数据源
+    db1:
+      ip: 127.0.0.1
+      name: ai
+      type: "com.zaxxer.hikari.HikariDataSource"
+      jdbcUrl: jdbc:mysql://${solon.dataSources.dynamic!.db1.ip}:3306/${solon.dataSources.dynamic!.db1.name}?useUnicode=true&characterEncoding=utf8&autoReconnect=true&rewriteBatchedStatements=true
+      driverClassName: com.mysql.cj.jdbc.Driver
+      username: root
+      password: password
+      connectionTimeout: 600000
+#    db2:
+#      ip: 127.0.0.1
+#      name: ai2
+#      type: "com.zaxxer.hikari.HikariDataSource"
+#      jdbcUrl: jdbc:mysql://${solon.dataSources.dynamic!.db2.ip}:3306/${solon.dataSources.dynamic!.db2.name}?useUnicode=true&characterEncoding=utf8&autoReconnect=true&rewriteBatchedStatements=true
+#      driverClassName: com.mysql.cj.jdbc.Driver
+#      username: root
+#      password: password
+
+
+
+solon.plugin: com.dustin.ai.manage.plugin.AgentLabelPlugin
