@@ -132,8 +132,9 @@ public class BasicKeyboardAgentV3 {
         session.addMessage(systemMessage);
 
 
-        //chat response
-        ChatResponse response = dataModel.prompt(session).call();
+        //chat response，thinking
+        ChatResponse response = dataModel.prompt(session)
+                .options(chatOptions -> chatOptions.optionAdd("enable_thinking", "true")).call();
 
         String content = response.getMessage().getContent();
 
@@ -185,7 +186,7 @@ public class BasicKeyboardAgentV3 {
         session.addMessage(generalMessage);
 
         //如果是通用对话则直接调用
-        ChatResponse mcpRes = dataModel.prompt(session).call();
+        ChatResponse mcpRes = dataModel.prompt(session).options(chatOptions -> chatOptions.optionAdd("enable_thinking", "true")).call();
 
         log.info("mcpRes: {}", mcpRes.getMessage().getContent());
 
@@ -270,7 +271,7 @@ public class BasicKeyboardAgentV3 {
             session.addMessage(combinedResponseMessage);
         }
 
-        ChatResponse finalRes = dataModel.prompt(session).call();
+        ChatResponse finalRes = dataModel.prompt(session).options(chatOptions -> chatOptions.optionAdd("enable_thinking", "true")).call();
         log.info("综合分析结果: {}", finalRes.getMessage().getContent());
 
         return Flux.just(finalRes.getMessage());
@@ -332,7 +333,7 @@ public class BasicKeyboardAgentV3 {
 
         session.addMessage(summaryMessage);
 
-        ChatResponse finalRes = dataModel.prompt(session).call();
+        ChatResponse finalRes = dataModel.prompt(session).options(chatOptions -> chatOptions.optionAdd("enable_thinking", "true")).call();
         log.info("综合分析结果: {}", finalRes.getMessage().getContent());
 
         return Flux.just(finalRes.getMessage());
@@ -749,7 +750,7 @@ public class BasicKeyboardAgentV3 {
             session.addMessage(systemMessage);
             session.addMessage(userMessage);
 
-            ChatResponse response = dataModel.prompt(session).call();
+            ChatResponse response = dataModel.prompt(session).options(chatOptions -> chatOptions.optionAdd("enable_thinking", "true")).call();
             String aiResponse = response.getMessage().getContent();
 
             log.info("多工具参数提取响应: {}", aiResponse);
@@ -907,7 +908,7 @@ public class BasicKeyboardAgentV3 {
             methodSession.addMessage(systemMessage);
 
             // 调用大模型进行方法决策
-            ChatResponse response = dataModel.prompt(methodSession).call();
+            ChatResponse response = dataModel.prompt(methodSession).options(chatOptions -> chatOptions.optionAdd("enable_thinking", "true")).call();
             String aiResponse = response.getMessage().getContent();
 
             log.info("大模型方法决策响应: {}", aiResponse);
@@ -965,7 +966,7 @@ public class BasicKeyboardAgentV3 {
             paramSession.addMessage(userMessage);
 
             // 调用大模型进行参数提取
-            ChatResponse response = dataModel.prompt(paramSession).call();
+            ChatResponse response = dataModel.prompt(paramSession).options(chatOptions -> chatOptions.optionAdd("enable_thinking", "true")).call();
             String aiResponse = response.getMessage().getContent();
 
             log.info("大模型参数提取响应: {}", aiResponse);

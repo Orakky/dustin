@@ -4,6 +4,7 @@ package com.dustin.ai.api.agent.basic;
  */
 public enum IntentType {
     MCP_CALL("MCP调用", "调用MCP服务获取数据"),
+    DATA_GET("数据获取","获取数据"),
     DATA_PROCESS("数据处理", "对获取的数据进行处理和分析"),
     DATA_GENERATE("数据生成", "生成新的数据"),
     DATA_MODIFY("数据修改", "修改现有数据"),

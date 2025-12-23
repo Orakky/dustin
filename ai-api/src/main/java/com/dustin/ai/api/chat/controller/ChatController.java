@@ -3,8 +3,8 @@ package com.dustin.ai.api.chat.controller;
 
 import com.dustin.ai.api.agent.basic.BasicKeyboardAgent;
 import com.dustin.ai.api.agent.basic.BasicKeyboardAgentV2;
+import com.dustin.ai.api.agent.basic.BasicKeyboardAgentV4;
 import com.dustin.ai.api.agent.basic.ChatInputVo;
-//import com.dustin.ai.api.agent.block.BlockAgent;
 import lombok.extern.slf4j.Slf4j;
 import org.noear.solon.ai.chat.message.AssistantMessage;
 import org.noear.solon.annotation.Controller;
@@ -33,6 +33,10 @@ public class ChatController {
     @Inject("basicKeyboardAgentV2")
     BasicKeyboardAgentV2 basicKeyboardAgentV2;
 
+    @Inject("basicKeyboardAgentV4")
+    BasicKeyboardAgentV4 basicKeyboardAgentV4;
+
+
 
     @PostConstruct
     @Mapping("/chat/dataChat")
@@ -52,6 +56,16 @@ public class ChatController {
     public Flux<AssistantMessage> chatTV2(ChatInputVo chatInputVo) throws IOException {
 
         return basicKeyboardAgentV2.run(chatInputVo);
+    }
+
+
+    @PostConstruct
+    @Mapping("/chatV4/dataChat")
+    @Produces(MimeType.TEXT_EVENT_STREAM_UTF8_VALUE)
+    @CrossOrigin(origins = "${solon.ai.chat.origins}")
+    public Flux<AssistantMessage> chatTV4(ChatInputVo chatInputVo) throws IOException {
+
+        return basicKeyboardAgentV4.run(chatInputVo);
     }
 
 
