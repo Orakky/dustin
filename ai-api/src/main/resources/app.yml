@@ -32,7 +32,10 @@ solon.ai.chat:
     apiUrl: "http://localhost:57879/qwen3-32b/chi/v1/chat/completions"
     apiKey: "apiKey"
     model: "Qwen3-32B"
-
+  mimo:
+    apiUrl: "https://api.xiaomimimo.com/v1/chat/completions"
+    apiKey: "xxx"
+    model: "mimo-v2-flash"
 
 
 solon.ai.mcp:
@@ -84,13 +87,13 @@ solon.dataSources:
     strict: true #严格模式（指定的源不存时：严格模式会抛异常；非严格模式用默认源）
     default: "db1" #指定默认数据源
     db1:
-      ip: 127.0.0.1
+      ip: 106.15.45.75
       name: ai
       type: "com.zaxxer.hikari.HikariDataSource"
       jdbcUrl: jdbc:mysql://${solon.dataSources.dynamic!.db1.ip}:3306/${solon.dataSources.dynamic!.db1.name}?useUnicode=true&characterEncoding=utf8&autoReconnect=true&rewriteBatchedStatements=true
       driverClassName: com.mysql.cj.jdbc.Driver
       username: root
-      password: password
+      password: wang@6725
       connectionTimeout: 600000
 #    db2:
 #      ip: 127.0.0.1
