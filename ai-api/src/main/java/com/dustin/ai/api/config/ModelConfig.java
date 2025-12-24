@@ -51,4 +51,9 @@ public class ModelConfig {
 
     }
 
+    @Bean(name = "mimo")
+    public ChatModel mimoModel(@Inject("${solon.ai.chat.mimo}") ChatConfig config) {
+        return ChatModel.of(config).build();
+    }
+
 }

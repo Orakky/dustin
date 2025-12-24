@@ -1,6 +1,10 @@
 package com.dustin.ai.api.agent.basic;
 
 
+
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.dustin.ai.manage.annotation.AgentLabel;
 import com.dustin.ai.manage.session.service.BasicChatService;
 import com.dustin.ai.manage.session.tools.ChatSessionTool;
@@ -10,12 +14,12 @@ import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.noear.solon.Utils;
 import org.noear.solon.ai.chat.ChatModel;
 import org.noear.solon.ai.chat.ChatResponse;
 import org.noear.solon.ai.chat.message.AssistantMessage;
 import org.noear.solon.ai.chat.message.ChatMessage;
 import org.noear.solon.ai.chat.message.SystemMessage;
-import org.noear.solon.ai.chat.message.UserMessage;
 import org.noear.solon.ai.mcp.client.McpClientProvider;
 import org.noear.solon.ai.rag.Document;
 import org.noear.solon.ai.rag.loader.MarkdownLoader;
@@ -42,6 +46,9 @@ public class BasicKeyboardAgentV4 {
 
     @Inject("dataModel")
     ChatModel dataModel;
+
+    @Inject("mimo")
+    ChatModel mimoModel;
 
     @Inject("basicMcpClient")
     McpClientProvider basicMcpClient;
@@ -127,7 +134,17 @@ public class BasicKeyboardAgentV4 {
             actionableIntents.sort(Comparator.comparingInt(IntentAnalysis::getConfidence).reversed());
 
 
-            //todo 根据意图类型结合业务场景构建对应的任务工作流
+            //4 根据意图获取对应工具集合
+            log.info("开始提取用户意图对应的工具集合，用户意图为：「{}」",actionableIntents);
+            List<ToolServiceFunction> toolServiceFunctions = getToolServiceFunctionsFromIntentAnalyses(agentContext,session,username,actionableIntents);
+            log.info("提取到的工具集合为：「{}」",toolServiceFunctions);
+
+            //5 todo 构建工具任务执行链路，并且业务场景进行参数传递
+            //6 todo 执行任务链路
+            //7 todo 处理任务执行结果，构建回复消息
+            //8 todo 构建回复消息，添加到session中
+            //9 todo 回复用户
+
 
 
         } catch (IOException e) {
@@ -136,10 +153,152 @@ public class BasicKeyboardAgentV4 {
 
 
 
-
-
         return Flux.just(new AssistantMessage(RespStatusEnum.SUCCESS_200.getMsg()));
     }
+
+    /**
+     * 根据意图集合提取对应的准确的mcp工具集合
+     * @param agentContext
+     * @param session
+     * @param username
+     * @param actionableIntents
+     * @return
+     */
+    private List<ToolServiceFunction> getToolServiceFunctionsFromIntentAnalyses(Map<String, Object> agentContext, ChatSessionTool session, String username, List<IntentAnalysis> actionableIntents) {
+            List<ToolServiceFunction> toolServiceFunctions = new ArrayList<>();
+
+        for (IntentAnalysis intentAnalysis : actionableIntents) {
+            //提取工具服务函数以及参数
+            List<ToolServiceFunction> toolList = extractToolServiceFunction(intentAnalysis.getIntentType(),intentAnalysis.getReason(),session,username);
+            if(CollectionUtils.isEmpty(toolList)){
+                log.warn("没有解析到可执行的工具，意图类型为：「{}」，意图描述为：「{}」",intentAnalysis.getIntentType(),intentAnalysis.getReason());
+                continue;
+            }
+            toolServiceFunctions.addAll(toolList);
+        }
+
+        return toolServiceFunctions;
+    }
+
+    /**
+     * 根据意图提取tool，包含tool名称、描述、输入参数
+     * @param intentType
+     * @param reason
+     * @param session
+     * @param username
+     * @return
+     */
+    private List<ToolServiceFunction> extractToolServiceFunction(IntentType intentType, String reason, ChatSessionTool session, String username) {
+        log.info("提取当前意图对应的工具，意图类型为：「{}」，意图描述为：「{}」",intentType,reason);
+
+        try{
+            SystemMessage systemMessage = new SystemMessage("你是一个智能参数提取助手。请根据用户输入和意图分析，参考之前的mcp文档中定义内容提取相关参数并返回结构化JSON响应。\n" +
+                    "当前意图: " + intentType.getName() + "\n" +
+                    "意图理由: " + reason + "\n\n" +
+                    "重要要求：\n" +
+                    "1. 所有参数key必须使用英文，不能使用中文\n" +
+                    "2. 参数值可以是中文，但key必须是英文\n" +
+                    "3. 参考MCP文档中的参数定义，使用准确的英文参数名\n" +
+                    "4. 只提取用户明确提到的具体指，不要添加额外的描述\n\n" +
+                    "请分析用户输入，提取所有需要调用的工具和参数：\n" +
+                    "JSON格式如下：{\n" +
+                    "  \"tool_count\": 10,\n" +
+                    "  \"tools\": [\n" +
+                    "    {\n" +
+                    "      \"tool_intent\": \"意图\",\n" +
+                    "      \"tool_service_name\": \"工具函数名称\",\n" +
+                    "      \"description\": \"描述\",\n" +
+                    "      \"queryParameters\": {\n" +
+                    "        \"param_key_1\": \"param_value_1\",\n" +
+                    "        \"param_key_2\": \"param_value_1\"\n" +
+                    "      }\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"tool_intent\": \"意图\",\n" +
+                    "      \"tool_service_name\": \"工具函数名称\",\n" +
+                    "      \"description\": \"描述\",\n" +
+                    "      \"queryParameters\": {\n" +
+                    "        \"param_key_1\": \"param_value_1\",\n" +
+                    "        \"param_key_2\": \"param_value_1\"\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  ]\n" +
+                    "}");
+
+            session.addMessage(systemMessage);
+
+            //结构化输出
+            ChatResponse response = mimoModel.prompt(session).options(
+                    chatOptions ->{
+                        chatOptions.optionAdd("enable_thinking", "true");
+                        chatOptions.response_format(Utils.asMap("type","json_object"));
+                    }
+            ).call();
+            String aiResponse = response.getMessage().getContent();
+            if(StringUtils.isEmpty(aiResponse)){
+                log.warn("mimoRes为空，意图类型为：「{}」，意图描述为：「{}」",intentType,reason);
+                return Collections.emptyList();
+            }
+            log.info("mimoRes: {}", aiResponse);
+
+            List<ToolServiceFunction> toolFunctions = parseToolFromRes(aiResponse);
+            if(CollectionUtils.isEmpty(toolFunctions)){
+                log.warn("mimoRes中提取到的工具为空，意图类型为：「{}」，意图描述为：「{}」",intentType,reason);
+                return Collections.emptyList();
+            }
+            return toolFunctions;
+        }catch (Exception e){
+            log.error("提取当前意图对应的工具失败，意图类型为：「{}」，意图描述为：「{}」",intentType,reason,e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * mimoRes: {
+     *   "tool_count": 1,
+     *   "tools": [
+     *     {
+     *       "tool_intent": "数据修改",
+     *       "tool_service_name": "modifyKeyboard",
+     *       "description": "修改键盘参数",
+     *       "queryParameters": {
+     *         "studioName": "russ",
+     *         "keyboardName": "haku",
+     *         "degree": "9"
+     *       }
+     *     }
+     *   ]
+     * }
+     * 从aiResponse中解析toolServiceFunction
+     * @param aiResponse
+     * @return
+     */
+    private List<ToolServiceFunction> parseToolFromRes(String aiResponse) {
+        try {
+            JSONObject jsonObject = JSONUtil.parseObj(aiResponse);
+            JSONArray tools = jsonObject.getJSONArray("tools");
+            
+            if (tools == null || tools.isEmpty()) {
+                return Collections.emptyList();
+            }
+            
+            List<ToolServiceFunction> toolServiceFunctions = new ArrayList<>(tools.size());
+            for (int i = 0; i < tools.size(); i++) {
+                JSONObject tool = tools.getJSONObject(i);
+                ToolServiceFunction toolServiceFunction = new ToolServiceFunction();
+                toolServiceFunction.setToolServiceName(tool.getStr("tool_service_name"));
+                toolServiceFunction.setDescription(tool.getStr("description"));
+                toolServiceFunction.setQueryParameters(tool.getJSONObject("queryParameters"));
+                toolServiceFunctions.add(toolServiceFunction);
+            }
+            return toolServiceFunctions;
+        } catch (Exception e) {
+            log.error("解析mimoRes失败，aiResponse为：「{}」", aiResponse, e);
+            throw new RuntimeException("解析工具响应失败", e);
+        }
+    }
+
+
 
     /**
      * 通用对话
@@ -206,7 +365,7 @@ public class BasicKeyboardAgentV4 {
         session.addMessage(systemMessage);
 
         //调用大模型思考进行意图分析
-        ChatResponse response = dataModel.prompt(session).options(
+        ChatResponse response = mimoModel.prompt(session).options(
                 chatOptions -> chatOptions.optionAdd("enable_thing", "true")
         ).call();
 

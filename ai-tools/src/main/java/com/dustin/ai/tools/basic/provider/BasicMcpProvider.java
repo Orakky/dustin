@@ -21,7 +21,7 @@ import java.util.Map;
 public class BasicMcpProvider {
 
 
-    @ToolMapping(description = "根据工作室名称获取键盘数据",name = "getKeyboardByName")
+    @ToolMapping(description = "根据工作室名称获取键盘数据",name = "getKeyboardByName", returnDirect = true)
     public Map<String,Object> getKeyboardByName(@Param(description = "工作室名称") String studioName){
         if(StringUtils.isEmpty(studioName)){
             log.info("工作室名称不能为空");
@@ -42,7 +42,7 @@ public class BasicMcpProvider {
     }
 
 
-    @ToolMapping(description = "修改键盘参数",name = "modifyKeyboard")
+    @ToolMapping(description = "修改键盘参数",name = "modifyKeyboard", returnDirect = true)
     public Map<String,Object> modifyKeyboard(@Param(description = "工作室名称") String studioName,@Param(description = "键盘名称") String keyboardName,
                                              @Param(description = "坡度",required = false)String degree,@Param(description = "前高",required = false) String frontHeight){
         log.info("修改指定键盘的参数，工作室：{},键盘：{}",studioName,keyboardName);
@@ -66,7 +66,7 @@ public class BasicMcpProvider {
     }
 
 
-    @ToolMapping(description = "查询键盘工作室",name = "queryKeyboardStudio")
+    @ToolMapping(description = "查询键盘工作室",name = "queryKeyboardStudio",returnDirect = true)
     public Map<String,Object> queryKeyboardStudio(@Param(description = "工作室名称",required = false) String studioName){
         Map<String,Object> map = new HashMap<>();
         if(StringUtils.isEmpty(studioName)){
