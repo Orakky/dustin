@@ -1,10 +1,12 @@
 package com.dustin.ai.support.flow;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.json.JSONUtil;
 import lombok.Data;
-import lombok.Getter;
-import org.noear.solon.annotation.Get;
+import org.noear.solon.core.util.ResourceUtil;
 
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -476,6 +478,30 @@ public class ToolWorkflowGraph {
         }
 
         return graph;
+    }
+
+
+    /**
+     * 从uri本地加载图
+     * @param uri
+     * @return
+     */
+    public static ToolWorkflowGraph fromUri(String uri){
+        URL resource = ResourceUtil.getResource(uri);
+        if(null == uri){
+            throw new IllegalArgumentException("can't find resouce: " + uri);
+        }else if(!uri.endsWith(".json")){
+            throw new IllegalArgumentException("file must end with .json: " + uri);
+        }else{
+            try{
+                String json = FileUtil.readString(resource, StandardCharsets.UTF_8);
+                return fromJson(json);
+            }catch (Throwable ex){
+                throw new IllegalArgumentException("can't read json file: " + uri, ex);
+            }
+
+        }
+
     }
 
     /**
