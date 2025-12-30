@@ -17,7 +17,7 @@ import java.util.Map;
  * 基础basic mcp 服务，测试用
  */
 @Slf4j
-@McpServerEndpoint(channel = McpChannel.STREAMABLE, mcpEndpoint = "/basicMcp")
+@McpServerEndpoint(channel = McpChannel.STREAMABLE_STATELESS, mcpEndpoint = "/basicMcp")
 public class BasicMcpProvider {
 
 

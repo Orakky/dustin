@@ -30,7 +30,7 @@ public class McpClientConfig {
     @Bean(name = "basicMcpClient")
     public McpClientProvider buildMcpClient(){
         return McpClientProvider.builder()
-                .channel(McpChannel.STREAMABLE) //默认均为streamable
+                .channel(McpChannel.STREAMABLE_STATELESS) //默认均为streamable,调整为streamable_stateless,无状态化
                 .url(apiUrl)
                 .requestTimeout(Duration.ofSeconds(60))
                 .httpTimeout(HttpTimeout.of(600000,600000,60000))

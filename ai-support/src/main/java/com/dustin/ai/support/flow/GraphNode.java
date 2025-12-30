@@ -1,9 +1,7 @@
 package com.dustin.ai.support.flow;
 
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +28,12 @@ public class GraphNode {
     //节点参数
     Map<String,Object> parameters;
 
+    //节点参数 map
+    Map<String,NodeParameter> nodeParameters;
+
+    //节点返回体 map
+    Map<String,NodeResult> nodeResults;
+
     //元数据
     Map<String,Object> metadata;
 
@@ -44,6 +48,8 @@ public class GraphNode {
         this.toolName = toolName;
         this.parameters = new HashMap<>();
         this.metadata = new HashMap<>();
+        this.nodeParameters = new HashMap<>();
+        this.nodeResults = new HashMap<>();
         this.priority = 5;
         this.required = true;
     }
@@ -62,6 +68,37 @@ public class GraphNode {
      */
     public GraphNode addParam(String key, Object value) {
         this.parameters.put(key, value);
+        return this;
+    }
+
+    /**
+     * 添加带有引用的参数
+     * @param key
+     * @param value
+     * @param ref
+     * @return
+     */
+    public GraphNode addParam(String key,Object value,String ref) {
+        NodeParameter nodeParameter = new NodeParameter();
+        nodeParameter.setRef(ref);
+        nodeParameter.setParamValue(value);
+        nodeParameter.setParamKey(key);
+        this.nodeParameters.put(key, nodeParameter);
+        this.addParam(key,value);
+        return this;
+    }
+
+    /**
+     * 添加返回值
+     * @param key
+     * @param value
+     * @return
+     */
+    public GraphNode addResult(String key,Object value){
+        NodeResult nodeResult = new NodeResult();
+        nodeResult.setResultValue(value);
+        nodeResult.setResultKey(key);
+        this.nodeResults.put(key, nodeResult);
         return this;
     }
 
