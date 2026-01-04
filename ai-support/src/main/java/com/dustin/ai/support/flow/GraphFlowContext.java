@@ -17,7 +17,7 @@ public class GraphFlowContext {
     public GraphFlowContext() {
     }
 
-    public static GraphFlowContext getInstance(){
+    public static GraphFlowContext  getInstance(){
         if(null == instance){
             synchronized (GraphFlowContext.class){
                 if(null == instance){
@@ -48,6 +48,18 @@ public class GraphFlowContext {
         }
         graphList.add(graph);
         flowContext.put(graph.getWorkflowId(),graph);
+    }
+
+    /**
+     * 全局移除一个任务图
+     * @param workflowId
+     */
+    public void removeToolGraph(String workflowId) {
+        if(null == workflowId || workflowId.isEmpty()) {
+            throw new IllegalArgumentException("workflowId is null");
+        }
+        flowContext.remove(workflowId);
+        graphList.removeIf(graph -> graph.getWorkflowId().equals(workflowId));
     }
 
      /**
@@ -96,7 +108,8 @@ public class GraphFlowContext {
      * @param workflowId
      * @return
      */
-    public static  ToolWorkflowGraph getGraph(String workflowId){
+    public static ToolWorkflowGraph getGraph(String workflowId){
         return getInstance().getToolGraph(workflowId);
     }
+
 }
