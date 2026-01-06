@@ -390,12 +390,62 @@ public class ToolWorkflowGraph {
                     node.getParameters().putAll((Map<? extends String, ?>) nodeData.get("parameters"));
                 }
 
+                // 处理nodeParameters
                 if(nodeData.get("nodeParameters") instanceof Map){
-                    node.setNodeParameters((Map<String, NodeParameter>) nodeData.get("nodeParameters"));
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> nodeParamsMap = (Map<String, Object>) nodeData.get("nodeParameters");
+                    Map<String, NodeParameter> nodeParameters = new HashMap<>();
+                    
+                    for (Map.Entry<String, Object> nEntry : nodeParamsMap.entrySet()) {
+                        String paramKey = nEntry.getKey();
+                        Object paramValue = nEntry.getValue();
+                        
+                        NodeParameter nodeParam = new NodeParameter();
+                        nodeParam.setParamKey(paramKey);
+                        
+                        if (paramValue instanceof Map) {
+                            // 如果是Map，直接解析为NodeParameter对象
+                            @SuppressWarnings("unchecked")
+                            Map<String, Object> paramData = (Map<String, Object>) paramValue;
+                            nodeParam.setParamValue(paramData.get("paramValue"));
+                            nodeParam.setRef((String) paramData.get("ref"));
+                        } else {
+                            // 如果是简单值，作为paramValue
+                            nodeParam.setParamValue(paramValue);
+                            nodeParam.setRef("");
+                        }
+                        
+                        nodeParameters.put(paramKey, nodeParam);
+                    }
+                    node.setNodeParameters(nodeParameters);
                 }
 
+                // 处理nodeResults
                 if(nodeData.get("nodeResults") instanceof Map){
-                    node.setNodeResults((Map<String, NodeResult>) nodeData.get("nodeResults"));
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> nodeResultsMap = (Map<String, Object>) nodeData.get("nodeResults");
+                    Map<String, NodeResult> nodeResults = new HashMap<>();
+                    
+                    for (Map.Entry<String, Object> nEntry : nodeResultsMap.entrySet()) {
+                        String resultKey = nEntry.getKey();
+                        Object resultValue = nEntry.getValue();
+                        
+                        NodeResult nodeResult = new NodeResult();
+                        nodeResult.setResultKey(resultKey);
+                        
+                        if (resultValue instanceof Map) {
+                            // 如果是Map，直接解析为NodeResult对象
+                            @SuppressWarnings("unchecked")
+                            Map<String, Object> resultData = (Map<String, Object>) resultValue;
+                            nodeResult.setResultValue(resultData.get("resultValue"));
+                        } else {
+                            // 如果是简单值，作为resultValue
+                            nodeResult.setResultValue(resultValue);
+                        }
+                        
+                        nodeResults.put(resultKey, nodeResult);
+                    }
+                    node.setNodeResults(nodeResults);
                 }
 
                 if (nodeData.get("metadata") instanceof Map) {

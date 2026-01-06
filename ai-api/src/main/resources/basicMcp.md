@@ -69,9 +69,9 @@
 
 **3 query-parameters:**
 
-| parameter | type   | required | description | since |
-|-----------|--------|----------|-------------|-------|
-| 工作室名称     | string | false    | 查询键盘工作室     | -     |
+| parameter  | type   | required | description | since |
+|------------|--------|----------|-------------|-------|
+| studioName | string | false    | 查询键盘工作室     | -     |
 
 
 **4 response-fields:**

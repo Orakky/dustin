@@ -2,6 +2,8 @@ package com.dustin.ai.support.flow.driver;
 
 import com.dustin.ai.support.flow.ToolWorkflowGraph;
 
+import java.util.Map;
+
 public interface GraphFlowDriver {
 
         /**
@@ -66,4 +68,17 @@ public interface GraphFlowDriver {
          * 清空所有任务图
          */
         void clear();
+
+        /**
+         * 获取一个任务的执行结果
+         * @param taskId 任务实例id
+         * @return 执行结果
+         */
+        Map<String, Object> getExecutionResult(String taskId);
+
+        /**
+         * 获取所有任务图
+         * @return 所有任务图
+         */
+        Map<String,ToolWorkflowGraph> getGraphTasks();
 }

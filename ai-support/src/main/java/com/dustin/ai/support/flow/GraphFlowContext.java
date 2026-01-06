@@ -1,12 +1,14 @@
 package com.dustin.ai.support.flow;
 
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.*;
 
 /**
  * 图流上下文
  */
-
+@Slf4j
 public class GraphFlowContext {
 
     /**
@@ -44,7 +46,8 @@ public class GraphFlowContext {
      */
     public void addToolGraph(ToolWorkflowGraph graph){
         if(graphList.contains(graph)){
-            throw new IllegalArgumentException("图流上下文已经存在该任务图");
+            log.info("图流上下文已经存在该任务图");
+            return;
         }
         graphList.add(graph);
         flowContext.put(graph.getWorkflowId(),graph);
