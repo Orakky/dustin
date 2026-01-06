@@ -10,18 +10,19 @@ public class WorkflowExecutor {
 
     private final ToolExecutor toolExecutor;
     private final Map<String, Object> executionContext; // 用于存储执行过程中的中间结果
+    private final ToolWorkflowGraph graph; // 工作流图，用于更新节点结果
 
-    public WorkflowExecutor(ToolExecutor toolExecutor) {
+    public WorkflowExecutor(ToolExecutor toolExecutor, ToolWorkflowGraph graph) {
         this.toolExecutor = toolExecutor;
+        this.graph = graph;
         this.executionContext = new HashMap<>();
     }
 
     /**
      * 执行工作流
-     * @param graph 工作流图
      * @return 执行结果
      */
-    public Map<String, Object> execute(ToolWorkflowGraph graph) {
+    public Map<String, Object> execute() {
         Map<String, Object> result = new HashMap<>();
         result.put("workflowId", graph.getWorkflowId());
         result.put("workflowName", graph.getName());
@@ -45,11 +46,11 @@ public class WorkflowExecutor {
 
             // 执行所有入口节点（并行执行）
             for (GraphNode entryNode : entryNodes) {
-                executeNode(graph, entryNode, executionTrace);
+                executeNode(entryNode, executionTrace);
             }
 
             // 执行后续节点
-            executeAllNodes(graph, executionTrace);
+            executeAllNodes(executionTrace);
 
             executionTrace.put("endTime", System.currentTimeMillis());
             executionTrace.put("duration", (Long)executionTrace.get("endTime") - (Long)executionTrace.get("startTime"));
@@ -77,7 +78,7 @@ public class WorkflowExecutor {
     /**
      * 执行单个节点
      */
-    private void executeNode(ToolWorkflowGraph graph, GraphNode node, Map<String, Object> executionTrace) throws Exception {
+    private void executeNode(GraphNode node, Map<String, Object> executionTrace) throws Exception {
         String nodeId = node.getNodeId();
         
         // 检查是否已经执行过
@@ -89,7 +90,7 @@ public class WorkflowExecutor {
         long startTime = System.currentTimeMillis();
         
         // 解析参数（处理引用）
-        Map<String, Object> resolvedParameters = resolveParameters(node, graph);
+        Map<String, Object> resolvedParameters = resolveParameters(node);
 
         // 执行工具
         String toolName = node.getToolName();
@@ -134,6 +135,9 @@ public class WorkflowExecutor {
         // 为了向后兼容，同时存储简化版的结果
         executionContext.put(nodeId + ".result", resolvedResults);
         
+        // 更新graph节点的nodeResults字段
+        updateGraphNodeResults(node, resolvedResults);
+        
         // 更新执行追踪
         executionDetails.put(nodeId, nodeTrace);
         @SuppressWarnings("unchecked")
@@ -144,7 +148,7 @@ public class WorkflowExecutor {
     /**
      * 执行所有节点（按照依赖顺序）
      */
-    private void executeAllNodes(ToolWorkflowGraph graph, Map<String, Object> executionTrace) throws Exception {
+    private void executeAllNodes(Map<String, Object> executionTrace) throws Exception {
         boolean allExecuted = false;
         int maxIterations = graph.getNodes().size() * 2; // 防止无限循环
         int iterations = 0;
@@ -174,7 +178,7 @@ public class WorkflowExecutor {
 
                 // 如果依赖都满足，执行该节点
                 if (dependenciesMet) {
-                    executeNode(graph, node, executionTrace);
+                    executeNode(node, executionTrace);
                     allExecuted = false; // 还有节点需要执行
                 }
             }
@@ -189,7 +193,7 @@ public class WorkflowExecutor {
     /**
      * 解析节点参数（处理引用）
      */
-    private Map<String, Object> resolveParameters(GraphNode node, ToolWorkflowGraph graph) {
+    private Map<String, Object> resolveParameters(GraphNode node) {
         return NodeParameterResolver.resolveNodeParameters(node, graph, executionContext);
     }
 
@@ -205,6 +209,47 @@ public class WorkflowExecutor {
      */
     public Map<String, Object> getExecutionContext() {
         return new HashMap<>(executionContext);
+    }
+
+    /**
+     * 更新graph节点的nodeResults字段
+     * @param node 当前节点
+     * @param resolvedResults 解析后的结果
+     */
+    private void updateGraphNodeResults(GraphNode node, Map<String, Object> resolvedResults) {
+        if (graph == null || resolvedResults == null) {
+            return;
+        }
+        
+        // 获取graph中的节点
+        GraphNode graphNode = graph.getNode(node.getNodeId());
+        if (graphNode == null) {
+            return;
+        }
+        
+        // 获取当前节点的nodeResults定义
+        Map<String, NodeResult> nodeResultsMap = graphNode.getNodeResults();
+        if (nodeResultsMap == null) {
+            nodeResultsMap = new HashMap<>();
+            graphNode.setNodeResults(nodeResultsMap);
+        }
+        
+        // 遍历解析后的结果，更新到graph节点的nodeResults中
+        for (Map.Entry<String, Object> entry : resolvedResults.entrySet()) {
+            String resultKey = entry.getKey();
+            Object resultValue = entry.getValue();
+            
+            // 查找或创建对应的NodeResult
+            NodeResult nodeResult = nodeResultsMap.get(resultKey);
+            if (nodeResult == null) {
+                nodeResult = new NodeResult();
+                nodeResult.setResultKey(resultKey);
+                nodeResultsMap.put(resultKey, nodeResult);
+            }
+            
+            // 更新结果值
+            nodeResult.setResultValue(resultValue);
+        }
     }
 
     /**

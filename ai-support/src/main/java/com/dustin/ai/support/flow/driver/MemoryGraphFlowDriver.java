@@ -82,11 +82,11 @@ public class MemoryGraphFlowDriver implements GraphFlowDriver {
         ToolExecutor toolExecutor = createToolExecutor();
 
         // 创建工作流执行器
-        WorkflowExecutor workflowExecutor = new WorkflowExecutor(toolExecutor);
+        WorkflowExecutor workflowExecutor = new WorkflowExecutor(toolExecutor, graph);
         workflowExecutors.put(taskId, workflowExecutor);
 
         // 执行工作流
-        Map<String, Object> executionResult = workflowExecutor.execute(graph);
+        Map<String, Object> executionResult = workflowExecutor.execute();
 
         // 根据执行结果更新任务状态
         String status = (String) executionResult.get("status");
