@@ -141,7 +141,7 @@ public class WorkflowExecutor {
         // 更新执行追踪
         executionDetails.put(nodeId, nodeTrace);
         @SuppressWarnings("unchecked")
-        java.util.List<String> executedNodes = (java.util.List<String>) executionTrace.get("executedNodes");
+        List<String> executedNodes = (List<String>) executionTrace.get("executedNodes");
         executedNodes.add(nodeId);
     }
 
@@ -226,7 +226,7 @@ public class WorkflowExecutor {
         if (graphNode == null) {
             return;
         }
-        
+
         // 获取当前节点的nodeResults定义
         Map<String, NodeResult> nodeResultsMap = graphNode.getNodeResults();
         if (nodeResultsMap == null) {
@@ -239,7 +239,7 @@ public class WorkflowExecutor {
             String resultKey = entry.getKey();
             Object resultValue = entry.getValue();
             
-            // 查找或创建对应的NodeResult
+            // 查找或创建对应的 NodeResult
             NodeResult nodeResult = nodeResultsMap.get(resultKey);
             if (nodeResult == null) {
                 nodeResult = new NodeResult();

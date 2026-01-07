@@ -1,5 +1,7 @@
 package com.dustin.ai.support.flow;
 
+import cn.hutool.json.JSONUtil;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -60,14 +62,14 @@ public class NodeParameterResolver {
      */
     public static Map<String, Object> resolveNodeResults(GraphNode node, String toolResult, Map<String, Object> executionContext) {
         Map<String, Object> resolved = new HashMap<>();
-        
+
         // 如果nodeResults为空，直接返回工具结果
         if (node.getNodeResults() == null || node.getNodeResults().isEmpty()) {
             resolved.put("result", toolResult);
             return resolved;
         }
         
-        // 处理nodeResults中的定义
+        // 处理 nodeResults 中的定义
         for (Map.Entry<String, NodeResult> entry : node.getNodeResults().entrySet()) {
             String resultKey = entry.getKey();
             NodeResult result = entry.getValue();
@@ -84,6 +86,28 @@ public class NodeParameterResolver {
             } else {
                 resolved.put(resultKey, result.getResultValue());
             }
+        }
+
+        // 最后处理 toolResult
+        if(null != toolResult && !toolResult.isEmpty()){
+           // 字符串类型的 json 字符串 转化成 map
+                try {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> toolResultMap = (Map<String, Object>) JSONUtil.parseObj(toolResult).toBean(Map.class);
+                    resolved.putAll(toolResultMap);
+                    Map<String,NodeResult> toolNodeResultMap =  new HashMap<>();
+                    for (Map.Entry<String, Object> toolResultEntry : toolResultMap.entrySet()) {
+                        NodeResult nodeResult = new NodeResult();
+                        nodeResult.setResultKey(toolResultEntry.getKey());
+                        nodeResult.setResultValue(toolResultEntry.getValue());
+                        toolNodeResultMap.put(toolResultEntry.getKey(), nodeResult);
+                    }
+                    node.getNodeResults().putAll(toolNodeResultMap);
+
+                } catch (Exception e) {
+                    // 解析失败，保留原始字符串
+                    resolved.put("result", toolResult);
+                }
         }
         
         return resolved;

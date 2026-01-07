@@ -1,6 +1,5 @@
 package com.dustin.ai.support.flow;
 
-import cn.hutool.json.JSONUtil;
 import org.noear.solon.ai.mcp.client.McpClientProvider;
 
 import java.util.HashMap;
@@ -52,9 +51,11 @@ public class DefaultToolExecutor implements ToolExecutor {
             // 这里需要根据实际的MCP客户端API进行调整
             // 假设有工具列表方法
             // return mcpClient.getToolNames().contains(toolName);
-            
+            return  mcpClient.getTools().stream()
+                    .anyMatch(tool -> tool.name().equals(toolName));
+
             // 临时实现：假设所有工具都可用
-            return true;
+//            return true;
         } catch (Exception e) {
             return false;
         }
